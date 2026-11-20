@@ -18,7 +18,7 @@ jobs:
         run: |
           set -o pipefail
           if ! docker compose -f docker-compose.sitl.yml build --progress=plain 2>&1 | tee build.log; then
-            echo "::error title=build failed::$(grep -iE 'error|traceback|no module|not found|cannot|failed|exception|dsdl' build.log | cut -c1-220 | head -14 | tr '\n' '|')"
+            echo "::error title=build failed::$(awk '/waf configure --board sitl/{f=1} f' build.log | grep -vE 'Generating|Compiling|expanding' | grep -iE 'traceback|error|no module|exception|cannot|not found|failed|dronecan' | cut -c1-230 | head -14 | tr '\n' '|')"
             exit 1
           fi
       - name: Run SITL -> relay -> ingest
