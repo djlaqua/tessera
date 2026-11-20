@@ -1,7 +1,7 @@
 # ArduPilot ArduCopter SITL, built once from a pinned release tag.
 ARG ARDUPILOT_REF=Copter-4.6.3
 
-FROM ubuntu:24.04 AS build
+FROM ubuntu:26.04 AS build
 ARG ARDUPILOT_REF
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -14,7 +14,7 @@ RUN git clone --depth 1 --branch "${ARDUPILOT_REF}" --recurse-submodules --shall
 WORKDIR /ardupilot
 RUN python3 ./waf configure --board sitl && python3 ./waf copter -j"$(nproc)"
 
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --uid 10002 --create-home --shell /usr/sbin/nologin sitl
