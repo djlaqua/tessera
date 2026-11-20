@@ -18,7 +18,7 @@ jobs:
         run: |
           set -o pipefail
           if ! docker compose -f docker-compose.sitl.yml build --progress=plain 2>&1 | tee build.log; then
-            echo "::error title=build failed::$(grep -v '^#[0-9]* [0-9.]*$' build.log | tail -30 | tr '\n' '|' | cut -c1-3500)"
+            echo "::error title=build failed::$(grep -v '^#[0-9]* [0-9.]*$' build.log | tail -60 | tr '\n' '|' | tail -c 3800)"
             exit 1
           fi
       - name: Run SITL -> relay -> ingest
