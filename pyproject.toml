@@ -10,7 +10,7 @@ requires-python = ">=3.11"
 dependencies = ["pydantic>=2.6,<3"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "hypothesis>=6", "ruff>=0.5", "mypy>=2.4.1", "defusedxml>=0.7"]
+dev = ["pytest>=8", "hypothesis>=6", "ruff>=0.5", "mypy>=2.4.1", "defusedxml>=0.7.1"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
