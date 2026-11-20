@@ -7,13 +7,13 @@ name = "tessera"
 version = "0.1.0"
 description = "Resilient spatial stream and replay engine for degraded networks and GNSS-contested environments."
 requires-python = ">=3.11"
-dependencies = ["pydantic>=2.6,<3", "pymavlink>=2.4.41"]
+dependencies = ["pydantic>=2.6,<3", "pymavlink>=2.4.41", "pyproj>=3.6"]
 
 [project.scripts]
 tessera = "tessera.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=9.2.0", "hypothesis>=6.170.15", "ruff>=0.5", "mypy>=2.4.1", "defusedxml>=0.7.1", "pre-commit>=3.7"]
+dev = ["pytest>=9.2.0", "hypothesis>=6.170.15", "ruff>=0.5", "mypy>=2.4.1", "defusedxml>=0.7.1", "pre-commit>=3.7", "pyais>=2.9"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -37,5 +37,5 @@ strict = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["pymavlink", "pymavlink.*"]
+module = ["pymavlink", "pymavlink.*", "pyais", "pyais.*"]
 ignore_missing_imports = true

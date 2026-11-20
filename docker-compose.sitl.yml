@@ -1,0 +1,22 @@
+# ArduPilot SITL plus Tessera ingest. UNTESTED: written without Docker access, VERIFY before use.
+# Usage: docker compose -f docker-compose.sitl.yml up --build
+services:
+  sitl:
+    image: ardupilot/ardupilot-dev-base:latest  # VERIFY image name and tag
+    command: >
+      bash -c "git clone --depth 1 --recurse-submodules https://github.com/ArduPilot/ardupilot.git /ap &&
+      cd /ap && Tools/autotest/sim_vehicle.py -v ArduCopter --no-rebuild --out=udp:tessera:14550"
+    networks: [telemetry]
+  tessera:
+    build: .
+    command: ["tessera", "ingest-mavlink", "--db", "/data/flight.db", "--bind", "0.0.0.0", "--port", "14550", "--max-events", "500"]
+    volumes: ["./data:/data"]
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    user: "10001:10001"
+    networks: [telemetry]
+networks:
+  telemetry:
+    internal: true
