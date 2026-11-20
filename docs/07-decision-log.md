@@ -43,3 +43,15 @@ Format: ID, date, status, context, decision, consequences.
 - Context: Docker helps with SITL, ARM images and pilot packaging but adds overhead early.
 - Decision: Add a SITL compose file in sprint 02, production image in weeks 11 to 13.
 - Consequences: Sprints 01 and 02 stay on a plain venv.
+
+## ADR-007: Sprint 02 dependencies
+- Date: 2026-11-20, Status: Accepted
+- Context: CRS handling and AIS validation need trusted references. Alternatives rejected: hand-written projection math, hand-trusted AIS bit tables without an oracle.
+- Decision: `pyproj` is a runtime dependency (CRS normalization, `always_xy=True`). `pyais` is a dev-only dependency used as an independent oracle in AIS tests. The AIS decoder itself is a small in-repo implementation limited to types 1 to 3.
+- Consequences: Runtime stays small. AIS decoder correctness is cross-checked against an established library on every test run.
+
+## ADR-008: MAVLink signing enforcement
+- Date: 2026-11-20, Status: Accepted (supersedes the signing caveat in ADR-005)
+- Context: Unsigned MAVLink can be spoofed by anyone who can reach the port. pymavlink verifies signatures and replay timestamps.
+- Decision: `MavlinkAdapter(signing_key=...)` requires valid signatures and rejects unsigned, wrongly signed and replayed frames. The CLI reads the key from `--signing-key-file`, never from the command line.
+- Consequences: Pilots on real links should enable signing. The key must be provisioned and stored outside the repo.

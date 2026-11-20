@@ -6,7 +6,7 @@ Last updated: 2026-11-19
 Founder evaluated two geospatial startup options (A: GPS-denied terrain/landmark
 matcher, B: multi-sensor interoperability middleware). Chosen direction is the
 hybrid "dual-use" path: build B first as the commercial wedge, add A as the
-deep-tech differentiator. Sprint 01 is implemented (model, log, replay, CoT/GeoJSON, MAVLink adapter, ingest CLI). Next action is Sprint 02.
+deep-tech differentiator. Sprint 01 and most of Sprint 02 are implemented and verified live against ArduPilot SITL (adapters: MAVLink with signing, MQTT JSON, AIS; link simulator; CRS normalizer). Docker files are untested. Next action: Sprint 03 (sync, UI), see roadmap.
 
 ## Decisions made
 | ID | Decision | Status |
@@ -36,7 +36,7 @@ deep-tech differentiator. Sprint 01 is implemented (model, log, replay, CoT/GeoJ
 4. Which GNSS-denied sub-problem for A: cross-seasonal matching or integrity scoring? (Recommendation: integrity scoring.)
 
 ## Next actions
-1. Verify the adapter against live ArduPilot SITL, then run Sprint 02 (`specs/sprint-02.md`).
+1. Merge the Sprint 02 PR, test the Docker files, then plan Sprint 03 (store-and-forward sync, live map).
 2. Complete `docs/08-research-backlog.md` items R1 to R4 this week.
 3. Book 5 customer discovery calls before building the MAVLink adapter beyond the spike.
 
@@ -45,7 +45,7 @@ deep-tech differentiator. Sprint 01 is implemented (model, log, replay, CoT/GeoJ
 You are continuing a project called Tessera. Read the attached AGENTS.md,
 docs/00-handoff-context.md, docs/05-architecture.md and the rules/ files.
 Follow the rules strictly. Keep explanations brief. Never use em dashes or the
-word "erm". Current task: specs/sprint-02.md. Ask before deviating from any
+word "erm". Current task: roadmap weeks 7 to 10 (sync and map). Ask before deviating from any
 accepted decision in docs/07-decision-log.md. Mark unverified legal or market
 claims as VERIFY.
 ```
