@@ -31,6 +31,7 @@ Phase 1 ships a **Spatial Stream & Replay Engine** (Option B). Phase 2 plugs in 
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pytest
+pre-commit install   # ruff, mypy, gitleaks, no-em-dash, hygiene hooks
 ```
 
 ## Migrating to another chat or platform
