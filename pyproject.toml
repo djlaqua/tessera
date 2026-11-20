@@ -13,7 +13,7 @@ dependencies = ["pydantic>=2.6,<3", "pymavlink>=2.4.41", "pyproj>=3.6"]
 tessera = "tessera.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=9.2.0", "hypothesis>=6.170.15", "ruff>=0.5", "mypy>=2.4.1", "defusedxml>=0.7.1", "pre-commit>=3.7", "pyais>=2.9"]
+dev = ["pytest>=9.2.0", "hypothesis>=6.170.15", "ruff>=0.5", "mypy>=2.4.1", "defusedxml>=0.7.1", "pre-commit>=4.7.0", "pyais>=2.9"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
