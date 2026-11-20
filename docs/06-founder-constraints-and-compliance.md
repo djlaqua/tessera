@@ -4,11 +4,11 @@ Everything here is `VERIFY` with a qualified German advisor. This is a planning 
 
 ## Constraints from the founder doc
 - Operating from Germany with limited German, strong English.
-- Non-EU passport at present, naturalization expected around early 2028.
+- Personal legal and residency details are kept out of this public repo (use the gitignored `private/` folder).
 - Phase 1 stays unclassified, civil and dual-use.
 
 ## Checklist
-- [ ] Confirm residence permit allows self-employment or company founding (Ausländerbehörde).
+- [ ] Confirm your residence status allows self-employment or company founding (local immigration office).
 - [ ] Review employer contract for IP assignment and side business clauses before any code is written on company time or hardware.
 - [ ] Keep personal and employer work strictly separate (devices, accounts, repos).
 - [ ] Check EU dual-use regulation and BAFA scope for the Phase 2 localization module before sharing code or demos outside the EU.

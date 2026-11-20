@@ -1,22 +1,40 @@
-# ArduPilot SITL plus Tessera ingest. UNTESTED: written without Docker access, VERIFY before use.
-# Usage: docker compose -f docker-compose.sitl.yml up --build
+# ArduPilot SITL -> relay -> Tessera ingest, on an internal network.
+# Run: docker compose -f docker-compose.sitl.yml up --build --abort-on-container-exit --exit-code-from tessera
+# Read results: docker compose -f docker-compose.sitl.yml run --rm --no-deps tessera replay --db /data/flight.db
 services:
   sitl:
-    image: ardupilot/ardupilot-dev-base:latest  # VERIFY image name and tag
-    command: >
-      bash -c "git clone --depth 1 --recurse-submodules https://github.com/ArduPilot/ardupilot.git /ap &&
-      cd /ap && Tools/autotest/sim_vehicle.py -v ArduCopter --no-rebuild --out=udp:tessera:14550"
+    build:
+      context: .
+      dockerfile: Dockerfile.sitl
     networks: [telemetry]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
   tessera:
     build: .
-    command: ["tessera", "ingest-mavlink", "--db", "/data/flight.db", "--bind", "0.0.0.0", "--port", "14550", "--max-events", "500"]
-    volumes: ["./data:/data"]
+    command: ["ingest-mavlink", "--db", "/data/flight.db", "--bind", "0.0.0.0", "--port", "14550", "--max-events", "200", "--idle-timeout", "90"]
+    volumes: ["flightdata:/data"]
     read_only: true
     tmpfs: ["/tmp"]
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
-    user: "10001:10001"
     networks: [telemetry]
+
+  relay:
+    build: .
+    image: tessera-relay
+    entrypoint: ["python", "/opt/tessera/scripts/sitl_relay.py"]
+    command: ["--tcp", "sitl:5760", "--udp", "tessera:14550", "--seconds", "75", "--rate-hz", "10"]
+    depends_on: [sitl, tessera]
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    networks: [telemetry]
+
+volumes:
+  flightdata:
+
 networks:
   telemetry:
     internal: true

@@ -1,10 +1,50 @@
+# Python environments (any name)
 .venv/
+venv/
+env/
+ENV/
+.python-version.local
+
+# Python artifacts
 __pycache__/
+*.py[cod]
 *.egg-info/
+build/
+dist/
+.eggs/
+
+# Tool caches and reports
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
+.hypothesis/
+.coverage
+coverage.xml
+htmlcov/
+
+# Secrets and keys (never commit)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.signing-key
+secrets/
+
+# Runtime data
+data/
 *.db
 *.db-wal
 *.db-shm
-.env
+*.db-journal
+eeprom.bin
+
+# Private notes (personal or legal details stay out of this public repo)
+private/
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

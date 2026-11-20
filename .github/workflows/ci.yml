@@ -27,3 +27,33 @@ jobs:
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build image
+        run: docker build -t tessera:ci .
+      - name: CLI runs
+        run: docker run --rm tessera:ci --help
+      - name: Runs as non-root
+        run: test "$(docker run --rm --entrypoint id tessera:ci -u)" = "10001"
+      - name: Hardened ingest and replay smoke test
+        run: |
+          docker volume create smoke-data
+          docker run -d --name ing --read-only --tmpfs /tmp --cap-drop ALL \
+            --security-opt no-new-privileges:true -p 127.0.0.1:14550:14550/udp \
+            -v smoke-data:/data tessera:ci ingest-mavlink --db /data/smoke.db \
+            --bind 0.0.0.0 --port 14550 --max-events 40 --idle-timeout 30
+          sleep 3
+          python3 - <<'PY'
+          import pathlib, socket
+          data = pathlib.Path("tests/fixtures/sitl_global_position_int.bin").read_bytes()
+          sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+          for offset in range(0, len(data), 40):
+              sock.sendto(data[offset:offset + 40], ("127.0.0.1", 14550))
+          PY
+          test "$(docker wait ing)" = "0"
+          docker logs ing 2>&1 | tee ingest.log
+          grep -q "stored 40 observations" ingest.log
+          docker run --rm -v smoke-data:/data tessera:ci replay --db /data/smoke.db --format geojson \
+            | python3 -c "import json,sys; n=len(json.load(sys.stdin)['features']); assert n == 40, n; print('replayed', n)"
