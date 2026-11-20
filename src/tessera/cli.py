@@ -6,6 +6,7 @@ import argparse
 import json
 import sys
 from collections.abc import Sequence
+from pathlib import Path
 
 from tessera.adapters.mavlink import MavlinkAdapter
 from tessera.encoders import to_cot, to_geojson
@@ -25,6 +26,11 @@ def _build_parser() -> argparse.ArgumentParser:
     ingest.add_argument("--source-id", default="mavlink-udp")
     ingest.add_argument("--max-events", type=int, default=None)
     ingest.add_argument("--idle-timeout", type=float, default=None, help="seconds")
+    ingest.add_argument(
+        "--signing-key-file",
+        default=None,
+        help="file with the 32 byte MAVLink signing key; enables signature enforcement",
+    )
 
     replay = sub.add_parser("replay", help="replay a log to stdout")
     replay.add_argument("--db", required=True)
@@ -36,11 +42,12 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     if args.command == "ingest-mavlink":
+        key = Path(args.signing_key_file).read_bytes() if args.signing_key_file else None
         with EventLog(args.db) as log, bind_udp(args.bind, args.port) as sock:
             stored = ingest_socket(
                 sock,
                 log,
-                MavlinkAdapter(args.source_id),
+                MavlinkAdapter(args.source_id, signing_key=key),
                 max_events=args.max_events,
                 idle_timeout_s=args.idle_timeout,
             )

@@ -4,8 +4,9 @@ Notes:
 - MAVLink altitude (`alt`) is above mean sea level, so it is tagged `AltitudeReference.MSL`.
 - GLOBAL_POSITION_INT carries only `time_boot_ms`, not wall time. `observed_at` is therefore
   the receive time from the injected clock, and `time_boot_ms` is kept as an attribute.
-- Frames are not authenticated unless MAVLink signing is used. Signing is not verified yet,
-  so treat the link as untrusted (see rules/security.md and ADR-005).
+- Frames are not authenticated unless MAVLink signing is used. Pass `signing_key` (32 bytes)
+  to require valid signatures: unsigned, wrongly signed and replayed frames are rejected
+  (ADR-008). Without a key the link must be treated as untrusted.
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ from tessera.errors import AdapterError
 from tessera.models import AltitudeReference, EntityType, Observation, Position, Velocity
 
 MAX_CHUNK_BYTES = 65_536
+SIGNING_KEY_BYTES = 32
 _HEADING_UNKNOWN = 65_535
 _MESSAGE_TYPE = "GLOBAL_POSITION_INT"
 
@@ -41,12 +43,18 @@ class MavlinkAdapter:
         *,
         entity_type: EntityType = EntityType.UAV,
         clock: Callable[[], datetime] = _utc_now,
+        signing_key: bytes | None = None,
     ) -> None:
+        if signing_key is not None and len(signing_key) != SIGNING_KEY_BYTES:
+            raise ValueError(f"signing_key must be {SIGNING_KEY_BYTES} bytes")
         self._source_id = source_id
         self._entity_type = entity_type
         self._clock = clock
         self._mav = mavlink2.MAVLink(None)
         self._mav.robust_parsing = True
+        if signing_key is not None:
+            self._mav.signing.secret_key = signing_key
+            self._mav.signing.allow_unsigned_callback = lambda _mav, _message_id: False
         self.rejected = 0
 
     def parse(self, raw: bytes) -> list[Observation]:
@@ -55,6 +63,9 @@ class MavlinkAdapter:
         messages = self._mav.parse_buffer(raw) or []
         observations: list[Observation] = []
         for message in messages:
+            if message.get_type() == "BAD_DATA":
+                self.rejected += 1
+                continue
             if message.get_type() != _MESSAGE_TYPE:
                 continue
             observation = self._to_observation(message)

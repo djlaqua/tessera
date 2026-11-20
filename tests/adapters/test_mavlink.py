@@ -95,3 +95,44 @@ def test_corrupted_crc_dropped(adapter):
 def test_random_bytes_never_crash(raw):
     adapter = MavlinkAdapter("fuzz", clock=lambda: NOW)
     assert isinstance(adapter.parse(raw), list)
+
+
+KEY = bytes(range(32))
+
+
+def signed_frame(key: bytes = KEY, timestamp: int = 1_000) -> bytes:
+    tx = mavlink2.MAVLink(None, srcSystem=7, srcComponent=1)
+    tx.signing.secret_key = key
+    tx.signing.sign_outgoing = True
+    tx.signing.link_id = 0
+    tx.signing.timestamp = timestamp
+    message = tx.global_position_int_encode(1, 481_370_000, 115_750_000, 0, 0, 0, 0, 0, 0)
+    return bytes(message.pack(tx))
+
+
+def test_signed_frame_accepted_when_key_configured():
+    adapter = MavlinkAdapter("s", clock=lambda: NOW, signing_key=KEY)
+    assert len(adapter.parse(signed_frame())) == 1
+
+
+def test_unsigned_frame_rejected_when_key_configured():
+    adapter = MavlinkAdapter("s", clock=lambda: NOW, signing_key=KEY)
+    assert adapter.parse(frame()) == []
+    assert adapter.rejected >= 1
+
+
+def test_wrong_key_rejected():
+    adapter = MavlinkAdapter("s", clock=lambda: NOW, signing_key=KEY)
+    assert adapter.parse(signed_frame(key=bytes(32))) == []
+
+
+def test_replayed_frame_rejected():
+    adapter = MavlinkAdapter("s", clock=lambda: NOW, signing_key=KEY)
+    data = signed_frame(timestamp=2_000)
+    assert len(adapter.parse(data)) == 1
+    assert adapter.parse(data) == []
+
+
+def test_signing_key_length_validated():
+    with pytest.raises(ValueError):
+        MavlinkAdapter("s", signing_key=b"short")
