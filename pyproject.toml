@@ -7,7 +7,7 @@ name = "tessera"
 version = "0.1.0"
 description = "Resilient spatial stream and replay engine for degraded networks and GNSS-contested environments."
 requires-python = ">=3.11"
-dependencies = ["pydantic>=2.6,<3", "pymavlink>=2.4.41", "pyproj>=3.6"]
+dependencies = ["pydantic>=2.6,<3", "pymavlink>=2.4.50", "pyproj>=3.6"]
 
 [project.scripts]
 tessera = "tessera.cli:main"
