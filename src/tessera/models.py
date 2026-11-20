@@ -24,14 +24,22 @@ class EntityType(StrEnum):
     SENSOR = "sensor"
 
 
+class AltitudeReference(StrEnum):
+    """Vertical datum of `Position.alt_m`."""
+
+    ELLIPSOID = "ellipsoid"
+    MSL = "msl"
+
+
 class Position(BaseModel):
-    """WGS84 position. Altitude is meters above the ellipsoid when present."""
+    """WGS84 position. `alt_m` is in meters relative to `alt_ref` (ellipsoid by default)."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     lat: float = Field(ge=-90.0, le=90.0)
     lon: float = Field(ge=-180.0, le=180.0)
     alt_m: float | None = Field(default=None, ge=-1000.0, le=100_000.0)
+    alt_ref: AltitudeReference = AltitudeReference.ELLIPSOID
 
 
 class Velocity(BaseModel):

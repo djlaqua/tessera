@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from tessera.models import EntityType, Observation
+from tessera.models import AltitudeReference, EntityType, Observation
 
 _COT_UNKNOWN = "9999999.0"
 # VERIFY against the CoT type schema before relying on these mappings.
@@ -29,6 +29,7 @@ def to_cot(observation: Observation, *, stale_seconds: int = 60) -> bytes:
     if observation.position is None:
         raise ValueError("cannot encode an observation without a position")
     position = observation.position
+    has_hae = position.alt_m is not None and position.alt_ref is AltitudeReference.ELLIPSOID
     observed = observation.observed_at
     event = ET.Element(
         "event",
@@ -53,7 +54,7 @@ def to_cot(observation: Observation, *, stale_seconds: int = 60) -> bytes:
         {
             "lat": f"{position.lat:.7f}",
             "lon": f"{position.lon:.7f}",
-            "hae": f"{position.alt_m:.1f}" if position.alt_m is not None else _COT_UNKNOWN,
+            "hae": f"{position.alt_m:.1f}" if has_hae else _COT_UNKNOWN,
             "ce": accuracy,
             "le": _COT_UNKNOWN,
         },
@@ -76,9 +77,10 @@ def to_geojson_feature(observation: Observation) -> dict[str, Any]:
     """Encode an observation as a GeoJSON Feature (coordinates are lon, lat[, alt])."""
     geometry: dict[str, Any] | None = None
     if observation.position is not None:
-        coordinates = [observation.position.lon, observation.position.lat]
-        if observation.position.alt_m is not None:
-            coordinates.append(observation.position.alt_m)
+        position = observation.position
+        coordinates = [position.lon, position.lat]
+        if position.alt_m is not None and position.alt_ref is AltitudeReference.ELLIPSOID:
+            coordinates.append(position.alt_m)
         geometry = {"type": "Point", "coordinates": coordinates}
     properties: dict[str, Any] = {
         **observation.attributes,
@@ -88,6 +90,12 @@ def to_geojson_feature(observation: Observation) -> dict[str, Any]:
         "entity_type": observation.entity_type.value,
         "observed_at": observation.observed_at.isoformat(),
     }
+    if (
+        observation.position is not None
+        and observation.position.alt_m is not None
+        and observation.position.alt_ref is AltitudeReference.MSL
+    ):
+        properties["alt_msl_m"] = observation.position.alt_m
     if observation.velocity is not None:
         properties["course_deg"] = observation.velocity.course_deg
         properties["speed_mps"] = observation.velocity.speed_mps

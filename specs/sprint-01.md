@@ -12,9 +12,9 @@ A tested core: canonical model, durable event log, deterministic replay, CoT and
 | 4 | `Replayer` with speed factor and injectable sleep | Deterministic, ordered |
 | 5 | CoT encoder | Valid XML, escapes attributes, stable output |
 | 6 | GeoJSON encoder | Valid FeatureCollection, lon/lat order |
-| 7 | MAVLink spike (separate branch) | Read `GLOBAL_POSITION_INT` from ArduPilot SITL into the log |
+| 7 | MAVLink adapter and UDP ingest CLI | Done in code with synthetic frames. Live SITL check still manual, see `docs/sitl-quickstart.md` |
 
-Tasks 1 to 6 are scaffolded in `src/` and `tests/`. Verify, extend, then do 7.
+Tasks 1 to 7 are implemented. Status: 40 tests, ruff and mypy strict clean.
 
 ## Out of scope
 UI, sync, AIS, MQTT, localization.
