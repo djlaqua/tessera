@@ -19,13 +19,13 @@ deep-tech differentiator. Sprint 01 and most of Sprint 02 are implemented and ve
 
 ## Founder facts (from the founder's own evaluation doc, unverified)
 - Based in Germany (Bavaria/Munich ecosystem), strong English, limited German.
-- Non-EU passport today; planning German naturalization around early 2028. All legal timelines are `VERIFY`.
+- Personal legal and residency timelines are tracked privately (see `private/`, gitignored). All legal timelines are `VERIFY`.
 - Solo founder, very low early budget for B, moderate to high for A hardware.
 
 ## Source claims that need verification
 - BAFA and EU dual-use export rules scope for software.
 - NATO DIANA and EU program eligibility (incorporation and ownership rules).
-- Residence permit rules for self-employment and registering a UG/GmbH.
+- Residency rules for self-employment and registering a UG/GmbH.
 - Employer IP and moonlighting clauses.
 - Procurement timelines (3 to 9 months civil, 12 to 24+ months for A).
 

@@ -27,12 +27,29 @@ Phase 1 ships a **Spatial Stream & Replay Engine** (Option B). Phase 2 plugs in 
 
 ## Quick start
 
+Requires **Python 3.11 or newer** (3.12 recommended, see `.python-version`).
+
 ```bash
+# macOS: brew install python@3.12   (or: pyenv install 3.12)
 python3.12 -m venv .venv && source .venv/bin/activate
+python --version            # must print 3.11 or higher
 pip install -e ".[dev]"
 pytest
-pre-commit install   # ruff, mypy, gitleaks, no-em-dash, hygiene hooks
+pre-commit install          # ruff, mypy, gitleaks, no-em-dash, hygiene hooks
 ```
+
+If you already created a venv with an older Python, delete it and recreate it:
+`deactivate; rm -rf venv .venv; python3.12 -m venv .venv`.
+
+## Docker
+
+```bash
+docker build -t tessera .
+docker run --rm tessera --help
+docker compose -f docker-compose.sitl.yml up --build --abort-on-container-exit --exit-code-from tessera
+```
+CI builds and smoke tests the image on every push (`docker` job), and a manual `sitl-e2e`
+workflow runs the full SITL compose stack.
 
 ## Migrating to another chat or platform
 

@@ -24,6 +24,17 @@ def _split(address: str) -> tuple[str, int]:
     return host, int(port)
 
 
+def _connect(address: tuple[str, int], deadline: float) -> socket.socket:
+    """Connect with retries so the relay can start before the simulator is ready."""
+    while True:
+        try:
+            return socket.create_connection(address, timeout=5)
+        except OSError:
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(1.0)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tcp", default="127.0.0.1:5760")
@@ -36,7 +47,7 @@ def main() -> int:
     udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_target = _split(args.udp)
     deadline = time.monotonic() + args.seconds
-    with socket.create_connection(_split(args.tcp), timeout=10) as tcp:
+    with _connect(_split(args.tcp), deadline) as tcp:
         tcp.settimeout(1.0)
         heartbeat = mav.heartbeat_encode(
             mavlink2.MAV_TYPE_GCS, mavlink2.MAV_AUTOPILOT_INVALID, 0, 0, 0
