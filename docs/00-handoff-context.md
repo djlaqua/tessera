@@ -6,7 +6,7 @@ Last updated: 2026-11-19
 Founder evaluated two geospatial startup options (A: GPS-denied terrain/landmark
 matcher, B: multi-sensor interoperability middleware). Chosen direction is the
 hybrid "dual-use" path: build B first as the commercial wedge, add A as the
-deep-tech differentiator. A starter code scaffold exists. Next action is Sprint 01.
+deep-tech differentiator. Sprint 01 is implemented (model, log, replay, CoT/GeoJSON, MAVLink adapter, ingest CLI). Next action is Sprint 02.
 
 ## Decisions made
 | ID | Decision | Status |
@@ -36,7 +36,7 @@ deep-tech differentiator. A starter code scaffold exists. Next action is Sprint 
 4. Which GNSS-denied sub-problem for A: cross-seasonal matching or integrity scoring? (Recommendation: integrity scoring.)
 
 ## Next actions
-1. Run Sprint 01 (`specs/sprint-01.md`).
+1. Verify the adapter against live ArduPilot SITL, then run Sprint 02 (`specs/sprint-02.md`).
 2. Complete `docs/08-research-backlog.md` items R1 to R4 this week.
 3. Book 5 customer discovery calls before building the MAVLink adapter beyond the spike.
 
@@ -45,7 +45,7 @@ deep-tech differentiator. A starter code scaffold exists. Next action is Sprint 
 You are continuing a project called Tessera. Read the attached AGENTS.md,
 docs/00-handoff-context.md, docs/05-architecture.md and the rules/ files.
 Follow the rules strictly. Keep explanations brief. Never use em dashes or the
-word "erm". Current task: specs/sprint-01.md. Ask before deviating from any
+word "erm". Current task: specs/sprint-02.md. Ask before deviating from any
 accepted decision in docs/07-decision-log.md. Mark unverified legal or market
 claims as VERIFY.
 ```

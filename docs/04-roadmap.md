@@ -24,5 +24,8 @@ Hardening, packaging (container plus systemd unit), docs, demo video, pilot prop
 ## Months 4 to 6: Option A module
 Define `LocalizationProvider` plugin API. Prototype integrity scoring on recorded flights with open DEM and orthoimagery. Evaluate cross-seasonal matching only if integrity scoring shows traction.
 
+## Containers
+SITL compose file in sprint 02. Production image (non-root, read-only filesystem, pinned digest, amd64 and arm64) in weeks 11 to 13. See ADR-006.
+
 ## Not in scope until G3
 Classified work, military hardware integration, custom hardware, mobile apps.

@@ -25,3 +25,21 @@ Format: ID, date, status, context, decision, consequences.
 - Context: Full visual navigation faces heavy competition.
 - Decision: Phase 2 targets a trust score on any position source before attempting a complete navigation stack.
 - Consequences: Smaller scope, works with existing autopilots.
+
+## ADR-004: Explicit altitude datum
+- Date: 2026-11-20, Status: Accepted
+- Context: MAVLink reports altitude above mean sea level, while CoT `hae` and GeoJSON z expect ellipsoid height. Treating them as equal introduces errors of tens of meters. Alternative rejected: silently converting with a geoid model (adds a heavy dependency and hides assumptions).
+- Decision: `Position.alt_ref` (`ellipsoid` default, or `msl`). Encoders emit `hae` and GeoJSON z only for ellipsoid heights. MSL heights go to the `alt_msl_m` property.
+- Consequences: No false precision. A geoid conversion can be added later as a normalizer step.
+
+## ADR-005: pymavlink for MAVLink parsing
+- Date: 2026-11-20, Status: Accepted
+- Context: A hand-written MAVLink parser adds attack surface and maintenance. Alternative rejected: custom frame parser.
+- Decision: Use `pymavlink` (v2 common dialect, robust parsing, 64 KiB chunk limit). MAVLink signing is not verified yet.
+- Consequences: Telemetry is treated as untrusted. Add signing verification before any pilot that relies on link authenticity (see sprint 02).
+
+## ADR-006: Containers later, not now
+- Date: 2026-11-20, Status: Proposed
+- Context: Docker helps with SITL, ARM images and pilot packaging but adds overhead early.
+- Decision: Add a SITL compose file in sprint 02, production image in weeks 11 to 13.
+- Consequences: Sprints 01 and 02 stay on a plain venv.

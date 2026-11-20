@@ -2,10 +2,11 @@
 
 from tessera.errors import LogCorruptionError, TesseraError
 from tessera.eventlog import EventLog
-from tessera.models import EntityType, Observation, Position, Velocity
+from tessera.models import AltitudeReference, EntityType, Observation, Position, Velocity
 from tessera.replay import Replayer
 
 __all__ = [
+    "AltitudeReference",
     "EntityType",
     "EventLog",
     "LogCorruptionError",
