@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import socket
+import sys
 import time
 
 from pymavlink.dialects.v20 import common as mavlink2
@@ -35,6 +36,16 @@ def _connect(address: tuple[str, int], deadline: float) -> socket.socket:
             time.sleep(1.0)
 
 
+def try_send(sock: socket.socket, data: bytes, target: tuple[str, int]) -> bool:
+    """Send one datagram. Returns False if the target is unreachable (for example its
+    container has exited and its DNS name no longer resolves)."""
+    try:
+        sock.sendto(data, target)
+    except OSError:
+        return False
+    return True
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tcp", default="127.0.0.1:5760")
@@ -47,6 +58,8 @@ def main() -> int:
     udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_target = _split(args.udp)
     deadline = time.monotonic() + args.seconds
+    delivered = 0
+    dropped = 0
     with _connect(_split(args.tcp), deadline) as tcp:
         tcp.settimeout(1.0)
         heartbeat = mav.heartbeat_encode(
@@ -80,8 +93,12 @@ def main() -> int:
                 continue
             if not data:
                 break
-            udp.sendto(data, udp_target)
-    return 0
+            if try_send(udp, data, udp_target):
+                delivered += 1
+            else:
+                dropped += 1
+    print(f"relayed {delivered} datagrams, dropped {dropped}", file=sys.stderr)
+    return 0 if delivered else 1
 
 
 if __name__ == "__main__":
