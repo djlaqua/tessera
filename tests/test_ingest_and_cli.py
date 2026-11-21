@@ -6,6 +6,7 @@ from pymavlink.dialects.v20 import common as mavlink2
 
 from tessera.adapters.mavlink import MavlinkAdapter
 from tessera.cli import main
+from tessera.errors import AdapterError
 from tessera.eventlog import EventLog
 from tessera.ingest import bind_udp, ingest_socket
 
@@ -45,12 +46,36 @@ def test_ingest_stops_when_idle(tmp_path):
         assert stored == 0
 
 
-def test_ingest_survives_garbage_and_oversize(tmp_path):
+def test_ingest_survives_garbage(tmp_path):
+    # 8,000 bytes stays under the macOS loopback datagram limit (about 9 KB).
     with bind_udp("127.0.0.1", 0) as sock, EventLog(tmp_path / "log.db") as log:
-        _send(sock.getsockname()[1], [b"\x00" * 65_000, b"junk", _frame(1)])
+        _send(sock.getsockname()[1], [b"\x00" * 8_000, b"junk", _frame(1)])
         stored = ingest_socket(
             sock, log, MavlinkAdapter("t", clock=lambda: NOW), max_events=1, idle_timeout_s=2.0
         )
+        assert stored == 1
+
+
+class _RaisesOnce:
+    """Adapter stub that rejects its first datagram, like an oversized chunk would be."""
+
+    name = "stub"
+
+    def __init__(self) -> None:
+        self._inner = MavlinkAdapter("t", clock=lambda: NOW)
+        self._calls = 0
+
+    def parse(self, raw: bytes):
+        self._calls += 1
+        if self._calls == 1:
+            raise AdapterError("too large")
+        return self._inner.parse(raw)
+
+
+def test_ingest_continues_after_adapter_error(tmp_path):
+    with bind_udp("127.0.0.1", 0) as sock, EventLog(tmp_path / "log.db") as log:
+        _send(sock.getsockname()[1], [b"first", _frame(1)])
+        stored = ingest_socket(sock, log, _RaisesOnce(), max_events=1, idle_timeout_s=2.0)
         assert stored == 1
 
 
