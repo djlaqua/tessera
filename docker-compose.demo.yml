@@ -1,0 +1,78 @@
+# Full demo: simulated copter flies a square, GPS is glitched once, the edge ingests and
+# syncs signed batches to the hub, and the hub serves the live map with integrity scores.
+#
+#   docker compose -f docker-compose.demo.yml up --build -d
+#   open http://127.0.0.1:8080
+#   docker compose -f docker-compose.demo.yml down -v
+#
+# Demo only: plain HTTP on an isolated network (--allow-insecure-http) and a key generated
+# on first start. Use HTTPS and provisioned keys for anything real (docs/deployment.md).
+x-hardened: &hardened
+  read_only: true
+  tmpfs: ["/tmp"]
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+
+services:
+  sitl:
+    build:
+      context: .
+      dockerfile: Dockerfile.sitl
+    networks: [telemetry]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  keys:
+    build: .
+    image: tessera-local
+    <<: *hardened
+    entrypoint: ["sh", "-c"]
+    command: ["test -f /keys/edge-1 || tessera keygen --out /keys/edge-1; cp /keys/edge-1.pub /trusted/edge-1.pub"]
+    volumes: ["keys:/keys", "trusted:/trusted"]
+    network_mode: none
+
+  hub:
+    image: tessera-local
+    <<: *hardened
+    command: ["hub", "--db", "/data/hub.db", "--host", "0.0.0.0", "--port", "8080", "--trusted-keys", "/trusted"]
+    volumes: ["hubdata:/data", "trusted:/trusted:ro"]
+    ports: ["127.0.0.1:8080:8080"]
+    depends_on:
+      keys: {condition: service_completed_successfully}
+    networks: [telemetry, ui]
+
+  edge-ingest:
+    image: tessera-local
+    <<: *hardened
+    command: ["ingest", "--protocol", "mavlink", "--db", "/data/edge.db", "--bind", "0.0.0.0", "--port", "14550", "--source-id", "edge-1-mavlink"]
+    volumes: ["edgedata:/data"]
+    depends_on:
+      keys: {condition: service_completed_successfully}
+    networks: [telemetry]
+
+  edge-sync:
+    image: tessera-local
+    <<: *hardened
+    command: ["sync", "--db", "/data/edge.db", "--hub-url", "http://hub:8080", "--edge-id", "edge-1", "--key", "/keys/edge-1", "--interval", "2", "--allow-insecure-http"]
+    volumes: ["edgedata:/data", "keys:/keys:ro"]
+    depends_on: [hub, edge-ingest]
+    networks: [telemetry]
+
+  relay:
+    image: tessera-local
+    <<: *hardened
+    entrypoint: ["python", "/opt/tessera/scripts/sitl_relay.py"]
+    command: ["--tcp", "sitl:5760", "--udp", "edge-ingest:14550", "--seconds", "3600", "--fly", "--glitch-at", "45", "--glitch-deg", "0.003", "--glitch-for", "20"]
+    depends_on: [sitl, edge-ingest]
+    networks: [telemetry]
+
+volumes:
+  keys:
+  trusted:
+  hubdata:
+  edgedata:
+
+networks:
+  telemetry:
+    internal: true
+  ui: {}

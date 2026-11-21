@@ -1,0 +1,30 @@
+[Unit]
+Description=Tessera hub and live map
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=tessera
+Group=tessera
+ExecStart=/opt/tessera/venv/bin/tessera hub --db /var/lib/tessera/hub.db --host 127.0.0.1 --port 8080 --trusted-keys /etc/tessera/trusted
+Restart=always
+RestartSec=2
+StateDirectory=tessera
+ReadOnlyPaths=/etc/tessera
+EnvironmentFile=-/etc/tessera/hub.env
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

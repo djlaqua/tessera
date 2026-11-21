@@ -136,3 +136,32 @@ def test_replayed_frame_rejected():
 def test_signing_key_length_validated():
     with pytest.raises(ValueError):
         MavlinkAdapter("s", signing_key=b"short")
+
+
+def gps_raw(*, fix_type: int = 3, lat: int = 481_370_000, h_acc: int = 1_500) -> bytes:
+    tx = mavlink2.MAVLink(None, srcSystem=7, srcComponent=1)
+    message = tx.gps_raw_int_encode(
+        0, fix_type, lat, 115_750_000, 520_000, 80, 120, 500, 9_000, 12, 0, h_acc, 0, 0, 0
+    )
+    return bytes(message.pack(tx))
+
+
+def test_gps_raw_int_parsed_as_separate_source(adapter):
+    (obs,) = adapter.parse(gps_raw())
+    assert obs.entity_id == "sys7.comp1.gps1"
+    assert obs.attributes["platform"] == "sys7.comp1"
+    assert obs.attributes["position_source"] == "gps1"
+    assert obs.position_accuracy_m == pytest.approx(1.5)
+    assert obs.velocity.speed_mps == pytest.approx(5.0)
+    assert obs.velocity.course_deg == pytest.approx(90.0)
+
+
+def test_gps_without_3d_fix_rejected(adapter):
+    assert adapter.parse(gps_raw(fix_type=2)) == []
+    assert adapter.rejected == 1
+
+
+def test_fused_and_raw_share_platform(adapter):
+    fused, raw = adapter.parse(frame() + gps_raw())
+    assert fused.attributes["platform"] == raw.attributes["platform"] == "sys7.comp1"
+    assert fused.attributes["position_source"] == "fused"

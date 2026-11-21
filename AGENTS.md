@@ -1,17 +1,16 @@
 # AGENTS.md
 
 ## Project
-Tessera: edge-first spatial stream engine. Ingests heterogeneous telemetry
-(MAVLink, AIS, MQTT, GeoJSON), normalizes to a canonical model, stores an
-append-only event log, replays deterministically, and emits standard formats
-(Cursor-on-Target, GeoJSON) over unreliable links. Later: pluggable localization
-module producing position fixes with an integrity score.
+Tessera: edge-first telemetry engine with position integrity. Ingests MAVLink, AIS and
+JSON telemetry, normalizes to a canonical model, stores an append-only event log, replays
+deterministically, emits CoT and GeoJSON, syncs signed batches to a hub, and scores how
+far each position can be trusted. Phase 2 adds independent position sources (private repo).
 
 ## Read first
 1. `docs/00-handoff-context.md` (state and decisions)
 2. `docs/05-architecture.md` (design)
 3. `rules/coding-standards.md`, `rules/security.md`, `rules/writing-style.md`
-4. `specs/sprint-01.md` (current work)
+4. `specs/sprint-04.md` (current work)
 
 ## Hard rules
 - Follow the rules files explicitly. Do not deviate. If a rule blocks the task, stop and ask.
@@ -23,7 +22,7 @@ module producing position fixes with an integrity score.
 - Claims about law, export control, procurement, or competitors must be marked `VERIFY` until sourced.
 
 ## Stack (see ADR-001)
-Python 3.12, pydantic v2, asyncio, SQLite (WAL), pyproj, FastAPI + MapLibre (later), pytest, ruff, mypy strict.
+Python 3.12, pydantic v2, SQLite (WAL), pyproj, pymavlink, cryptography, FastAPI + uvicorn, Leaflet (vendored), pytest, hypothesis, ruff, mypy strict.
 
 ## Commands
 ```bash

@@ -6,6 +6,8 @@ on:
       - "Dockerfile.sitl"
       - "docker-compose.sitl.yml"
       - "scripts/sitl_relay.py"
+      - "docker-compose.demo.yml"
+      - "Dockerfile"
 permissions:
   contents: read
 jobs:
@@ -28,6 +30,34 @@ jobs:
           docker compose -f docker-compose.sitl.yml run -T --rm --no-deps tessera replay \
             --db /data/flight.db --format geojson \
             | python3 -c "import json,sys; n=len(json.load(sys.stdin)['features']); assert n >= 100, n; print('replayed', n)"
+      - name: Demo stack (fly, GPS glitch, sync, hub)
+        run: |
+          docker compose -f docker-compose.demo.yml up --build -d
+          python3 - <<'PY'
+          import json, time, urllib.request
+          deadline = time.time() + 420
+          best = None
+          while time.time() < deadline:
+              try:
+                  with urllib.request.urlopen("http://127.0.0.1:8080/v1/features?window=20000&trail=0", timeout=5) as r:
+                      features = {f["properties"]["entity_id"]: f["properties"] for f in json.load(r)["features"]}
+              except OSError:
+                  time.sleep(5)
+                  continue
+              gps = features.get("sys1.comp1.gps1")
+              fused = features.get("sys1.comp1")
+              if gps and fused:
+                  best = {k: (v["fixes_in_window"], v["flagged_in_window"], v.get("cross_source")) for k, v in features.items()}
+                  print(best, flush=True)
+                  if gps["flagged_in_window"] > 0 and fused["fixes_in_window"] > 300:
+                      print("glitch detected on the hub")
+                      break
+              time.sleep(10)
+          else:
+              raise SystemExit(f"glitch not detected in time: {best}")
+          PY
       - name: Logs on failure
         if: failure()
-        run: docker compose -f docker-compose.sitl.yml logs --no-color | tail -200
+        run: |
+          docker compose -f docker-compose.sitl.yml logs --no-color | tail -100
+          docker compose -f docker-compose.demo.yml logs --no-color | tail -200

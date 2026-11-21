@@ -10,5 +10,7 @@
 | R6 | Public flight logs (ArduPilot, PX4) for replay demos | Dataset list | Open |
 | R7 | Grant fit: EXIST, ZIM, Bavarian programs, DIANA | Eligibility matrix | Open |
 | R8 | Open-source vs closed core: licensing models used by comparable companies | Recommendation | Open |
+| R9 | Sourced data on civil GNSS interference: regions, frequency, affected sectors | Short memo with primary sources | Open |
+| R10 | Existing GNSS integrity and spoofing detection products for civil drones and vessels | Competitor table | Open |
 
 Rule: every answer cites a primary source and a retrieval date.

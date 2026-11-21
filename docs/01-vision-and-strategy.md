@@ -2,30 +2,38 @@
 
 ## Thesis
 GNSS jamming and spoofing, fragmented sensor tooling, and unreliable links are now
-permanent operating conditions. Operators need (1) one trustworthy spatial picture
-from incompatible sources and (2) positions they can trust when GNSS cannot be.
+routine operating conditions (VERIFY with sourced incident data, research item R9).
+Operators need (1) one picture from incompatible sources and (2) to know which positions
+in that picture they can trust.
 
 ## Product
-**Phase 1: Spatial Stream & Replay Engine.** Edge daemon plus live map. Ingests MAVLink,
-AIS, MQTT and GeoJSON, normalizes CRS and schema, stores an append-only log, replays
-deterministically, outputs CoT and GeoJSON, syncs over degraded links with delta compression.
+**Phase 1 (built): telemetry engine with integrity.** Edge daemon plus hub. Ingests
+MAVLink, AIS and JSON telemetry, normalizes, stores an append-only log, replays
+deterministically, outputs CoT and GeoJSON, and syncs signed batches over bad links to a
+hub with a live map. Every track carries an integrity score; raw GNSS is compared with
+the autopilot's fused estimate so a spoof or glitch shows up as disagreement.
 
-**Phase 2: Localization module.** Visual and DEM matching that emits a position fix with
-covariance and an **integrity score** (trustworthy vs hallucinated). Plugs into the same engine.
+**Phase 2 (next R&D): independent position sources.** Visual and DEM matching that emits a
+position fix with covariance. Its first job is not to fly the vehicle but to act as an
+independent witness for the integrity layer, which keeps scope and certification burden low.
 
 ## Wedge
-Not "generic middleware". Initial wedge (confirm after discovery calls):
-civil drone fleet telemetry plus local grid or environmental sensors, bridged to
-TAK/GIS formats over weak cellular or radio, with a crisp live map and incident replay.
+Lead with the question operators already ask after an incident: "was that position real?"
+Sharp offer: a fleet picture and flight recorder that flags untrustworthy positions, for
+civil drone and vessel operators who already see GNSS interference. Middleware is the
+carrier, integrity is the reason to buy. Confirm the segment through discovery calls.
 
-## Why the hybrid beats either option alone
-- B alone: fast revenue, weaker technical moat, crowded with integrators.
-- A alone: strong moat, 12 to 24+ months to revenue, hardware cost.
-- Hybrid: B funds and instruments A. The replay engine becomes the test harness that
-  validates A against recorded flights, which is the hardest part of A.
+## Why this order
+- Middleware alone: fast to build, weak moat, crowded with integrators.
+- Visual navigation alone: strong moat, 12 to 24+ months to revenue, hardware cost, heavy
+  competition from funded navigation companies.
+- Integrity first: sellable now with software only, uses data the customer already has,
+  creates the labeled replay corpus that Phase 2 needs, and grows into Option A naturally.
 
 ## Positioning
-"The flight recorder and common picture that keeps working when the network and GNSS do not."
+"The fleet picture that tells you which positions to trust, and keeps working when the
+network and GNSS do not."
 
 ## Principles
-Edge first, offline first, deterministic, open standards, small attack surface.
+Edge first, offline first, deterministic, open standards, small attack surface, honest
+about what a heuristic score can and cannot claim.

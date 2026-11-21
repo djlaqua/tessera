@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tessera Live</title>
+  <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="bar">
+    <div class="brand"><span class="mark" aria-hidden="true"></span>Tessera <span class="mode" id="mode"></span></div>
+    <dl class="stats">
+      <div><dt>Entities</dt><dd id="stat-entities">0</dd></div>
+      <div><dt>Low integrity</dt><dd id="stat-flagged">0</dd></div>
+      <div><dt>Updated</dt><dd id="stat-updated">never</dd></div>
+    </dl>
+    <div class="link" id="link-state" role="status">connecting</div>
+  </header>
+  <main class="layout">
+    <aside class="panel" aria-label="Entities">
+      <h2>Entities</h2>
+      <ul id="entity-list" class="entities"></ul>
+      <p class="hint" id="empty-hint">No positions yet. Start an ingest or sync.</p>
+      <section class="legend" aria-label="Integrity legend">
+        <h3>Integrity</h3>
+        <p><span class="dot ok"></span>trusted (0.8 to 1)</p>
+        <p><span class="dot warn"></span>degraded (0.5 to 0.8)</p>
+        <p><span class="dot bad"></span>suspect (below 0.5)</p>
+        <p class="hint">Heuristic score, not certified for navigation.</p>
+      </section>
+    </aside>
+    <div id="map" class="map" aria-label="Live map"></div>
+  </main>
+  <script src="/static/vendor/leaflet/leaflet.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

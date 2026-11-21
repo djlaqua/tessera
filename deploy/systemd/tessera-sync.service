@@ -1,0 +1,29 @@
+[Unit]
+Description=Tessera sync uplink to the hub
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=tessera
+Group=tessera
+ExecStart=/opt/tessera/venv/bin/tessera sync --db /var/lib/tessera/edge.db --hub-url https://hub.example.org --edge-id edge-1 --key /etc/tessera/edge-1.key
+Restart=always
+RestartSec=2
+StateDirectory=tessera
+ReadOnlyPaths=/etc/tessera
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

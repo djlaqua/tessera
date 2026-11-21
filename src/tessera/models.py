@@ -34,7 +34,7 @@ class AltitudeReference(StrEnum):
 class Position(BaseModel):
     """WGS84 position. `alt_m` is in meters relative to `alt_ref` (ellipsoid by default)."""
 
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", allow_inf_nan=False)
 
     lat: float = Field(ge=-90.0, le=90.0)
     lon: float = Field(ge=-180.0, le=180.0)
@@ -43,7 +43,7 @@ class Position(BaseModel):
 
 
 class Velocity(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", allow_inf_nan=False)
 
     course_deg: float = Field(ge=0.0, lt=360.0)
     speed_mps: float = Field(ge=0.0, le=2_000.0)
@@ -52,7 +52,7 @@ class Velocity(BaseModel):
 class Observation(BaseModel):
     """One timestamped observation of an entity from one source."""
 
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", allow_inf_nan=False)
 
     id: UUID = Field(default_factory=uuid4)
     source_id: Identifier

@@ -6,12 +6,21 @@
 3. Emergency services and disaster response units.
 4. Defense primes and drone makers as integration partners and later acquirers (Phase 2, after clearance-free proof).
 
-## Problem statement to validate
-"We have sensors and drones but cannot see one live picture, lose data on weak links, and cannot replay incidents."
+## Problem statements to validate
+1. "We cannot tell whether a position we saw was real, during or after an incident."
+2. "We have drones and sensors but no single live picture, we lose data on weak links, and we cannot replay incidents."
 
 ## Offer
-- **Edge daemon** (free or open core): adapters, normalization, log, replay.
-- **Paid**: multi-site sync, fleet dashboard, retention and audit export, SSO, support, integrity module.
+- **Pilot (8 weeks):** install edge and hub on the customer's data, replay their past incidents,
+  deliver an integrity report per flight or voyage, then run live for the rest of the pilot.
+- **Edge daemon:** adapters, normalization, log, replay (licensing per ADR-012).
+- **Paid:** hub with live map, integrity scoring and alerts, multi-site sync, retention and
+  audit export, SSO, support.
+
+## Demo asset (ready)
+`docker compose -f docker-compose.demo.yml up --build -d` runs a simulated copter that flies a
+circuit, injects a GPS glitch, syncs signed data to the hub and shows the glitch flagged on
+the live map. Use it in every discovery call (`docs/09-discovery-kit.md`).
 
 ## Pricing hypotheses (VERIFY via discovery)
 | Tier | Price | Buyer |
@@ -35,7 +44,7 @@ Pilot revenue first. Then EXIST, ZIM, Bavarian grants, NATO DIANA, EU programs, 
 ## Milestones
 | Month | Milestone | Exit signal |
 | :--- | :--- | :--- |
-| 1 | Sprint 01 scaffold, 5 discovery calls | 3 calls confirm the pain |
+| 1 | Engine, sync, map, integrity v0, demo (done) and 5 discovery calls | 3 calls confirm the pain |
 | 3 | Public replay demo, 1 pilot LOI | Signed LOI or paid pilot |
 | 6 | First paid pilot delivered, integrity prototype on replay data | Pilot renewal intent |
 | 9 | 3 paying sites or 1 grant | Repeatable sales motion |
@@ -45,3 +54,7 @@ Pilot revenue first. Then EXIST, ZIM, Bavarian grants, NATO DIANA, EU programs, 
 - Solo bandwidth: strict scope, open-source adapters from the community.
 - Export and legal exposure: see `06-founder-constraints-and-compliance.md`.
 - Language barrier for public sector: partner later.
+- Overclaiming integrity: the score is a heuristic, not a certified navigation integrity
+  monitor. Say so in every demo and contract (ADR-011).
+- Public repository: strategy and code are visible to competitors, and export rules may
+  apply to Phase 2 code (ADR-012).

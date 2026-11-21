@@ -55,3 +55,27 @@ Format: ID, date, status, context, decision, consequences.
 - Context: Unsigned MAVLink can be spoofed by anyone who can reach the port. pymavlink verifies signatures and replay timestamps.
 - Decision: `MavlinkAdapter(signing_key=...)` requires valid signatures and rejects unsigned, wrongly signed and replayed frames. The CLI reads the key from `--signing-key-file`, never from the command line.
 - Consequences: Pilots on real links should enable signing. The key must be provisioned and stored outside the repo.
+
+## ADR-009: Signed batch sync over HTTPS
+- Date: 2026-11-21, Status: Accepted
+- Context: Edges must forward their log over unreliable links without loss, duplication or forgery. Alternatives rejected: mutual TLS per edge (certificate management burden for a solo team), MQTT bridge (adds a broker and still needs end-to-end integrity).
+- Decision: Edges send zlib batches signed with Ed25519 over HTTPS. The hub stores idempotently by (edge_id, edge_seq) and returns its cursor; edges resume or rewind from it.
+- Consequences: At-least-once delivery, exactly-once storage, end-to-end integrity independent of the transport. Key distribution is manual (`tessera keygen`) for now.
+
+## ADR-010: Leaflet vendored, HTTP polling
+- Date: 2026-11-21, Status: Accepted
+- Context: The map must work offline and pass a strict CSP. Alternatives rejected: CDN scripts (fail offline, supply chain risk), MapLibre GL (heavier, WebGL), WebSockets (more server state for little gain at 2 s refresh).
+- Decision: Vendor Leaflet 1.9.4 with its license and checksum, poll `/v1/features` every 2 s.
+- Consequences: Small, auditable UI. Basemap tiles still need a tile server; offline tiles are a Sprint 04 item.
+
+## ADR-011: Integrity v0 scope and claims
+- Date: 2026-11-21, Status: Proposed
+- Context: Integrity is the commercial differentiator, but certified navigation integrity (RAIM-style) is out of reach and overclaiming is a legal and trust risk.
+- Decision: Score each fix with kinematic and motion-consistency checks against the last trusted fix, and compare sources of the same platform (fused estimate vs raw GPS). Present results as a heuristic, never as certified. Lead positioning with integrity, carried by the telemetry engine.
+- Consequences: Detects jumps and source disagreement; does not detect a slow, consistent spoof seen by all sources. Phase 2 independent sources address that.
+
+## ADR-012: Repository visibility and licensing
+- Date: 2026-11-21, Status: Proposed (needs founder decision and advisor review)
+- Context: The repository was made public to unlock free branch protection. It has no license, so it is "all rights reserved" by default. Public code reaches every country, and EU dual-use rules may apply to some navigation software (VERIFY).
+- Decision: Keep the core public and unlicensed until the open-core decision. Build any Phase 2 localization code in a separate private repository until an export-control review clears it. Keep business-sensitive notes in `private/`.
+- Consequences: Competitors can read the strategy docs. Revisit: choose a license (for example Apache-2.0 core plus proprietary hub) or return to private with a paid plan.

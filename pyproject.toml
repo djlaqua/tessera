@@ -13,14 +13,20 @@ dependencies = ["pydantic>=2.6,<3", "pymavlink>=2.4.41", "pyproj>=3.6"]
 tessera = "tessera.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "hypothesis>=6.100", "ruff>=0.5", "mypy>=1.10", "defusedxml>=0.7.1", "pre-commit>=3.7", "pyais>=2.9"]
+sync = ["cryptography>=42"]
+server = ["cryptography>=42", "fastapi>=0.110", "uvicorn>=0.29"]
+dev = ["pytest>=8", "hypothesis>=6.100", "ruff>=0.5", "mypy>=1.10", "defusedxml>=0.7.1", "pre-commit>=3.7", "pyais>=2.9", "cryptography>=42", "fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+tessera = ["ui/static/*", "ui/static/vendor/leaflet/*", "ui/static/vendor/leaflet/images/*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient` is deprecated"]
 
 [tool.ruff]
 line-length = 100
@@ -30,7 +36,7 @@ target-version = "py311"
 select = ["E", "F", "I", "B", "UP", "S", "SIM", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]
+"tests/*" = ["S101", "S105", "S106"]
 
 [tool.mypy]
 strict = true

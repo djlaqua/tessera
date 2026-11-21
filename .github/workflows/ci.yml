@@ -57,3 +57,24 @@ jobs:
           grep -q "stored 40 observations" ingest.log
           docker run --rm -v smoke-data:/data tessera:ci replay --db /data/smoke.db --format geojson \
             | python3 -c "import json,sys; n=len(json.load(sys.stdin)['features']); assert n == 40, n; print('replayed', n)"
+      - name: Signed sync to hub smoke test
+        run: |
+          docker network create tnet
+          docker volume create keys
+          docker volume create trusted
+          docker volume create hubdata
+          docker run --rm -v keys:/keys -v trusted:/trusted --entrypoint sh tessera:ci \
+            -c "tessera keygen --out /keys/edge-1 && cp /keys/edge-1.pub /trusted/edge-1.pub"
+          docker run -d --name hub --network tnet --read-only --tmpfs /tmp --cap-drop ALL \
+            --security-opt no-new-privileges:true -p 127.0.0.1:8080:8080 \
+            -v hubdata:/data -v trusted:/trusted:ro tessera:ci \
+            hub --db /data/hub.db --host 0.0.0.0 --port 8080 --trusted-keys /trusted
+          for i in $(seq 1 30); do curl -fs http://127.0.0.1:8080/healthz && break; sleep 1; done
+          docker run --rm --network tnet --read-only --tmpfs /tmp --cap-drop ALL \
+            -v smoke-data:/data -v keys:/keys:ro tessera:ci \
+            sync --db /data/smoke.db --hub-url http://hub:8080 --edge-id edge-1 \
+            --key /keys/edge-1 --once --allow-insecure-http 2>&1 | tee sync.log
+          grep -q "synced 40 events" sync.log
+          curl -fs http://127.0.0.1:8080/v1/features | python3 -c "import json,sys; f=json.load(sys.stdin)['features']; assert len(f)==1 and f[0]['properties']['fixes_in_window']==40, f; print('hub has', f[0]['properties']['fixes_in_window'], 'fixes')"
+          curl -fsI http://127.0.0.1:8080/ | grep -qi "content-security-policy"
+          docker logs hub 2>&1 | tail -5

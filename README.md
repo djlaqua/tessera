@@ -1,8 +1,29 @@
 # Tessera (working name)
 
-Resilient spatial stream engine for degraded-network, GNSS-contested environments.
-Phase 1 ships a **Spatial Stream & Replay Engine** (Option B). Phase 2 plugs in an
-**integrity-scored visual/DEM localization module** (Option A).
+A fleet picture that tells you which positions to trust, and keeps working when the network
+and GNSS do not. Edge telemetry engine (MAVLink, AIS, JSON) with signed store-and-forward
+sync, a live map, and position integrity scoring.
+
+Status: engineering through pilot readiness is built and tested; see `docs/00-handoff-context.md`.
+No license yet: all rights reserved (ADR-012).
+
+## Try it in one command
+```bash
+docker compose -f docker-compose.demo.yml up --build -d
+open http://127.0.0.1:8080      # a simulated copter flies; at about 45 s its GPS is glitched
+```
+The raw GPS track turns red while the autopilot's fused track stays green. Details: `docs/deployment.md`.
+
+## CLI
+| Command | Purpose |
+| :--- | :--- |
+| `tessera ingest --protocol mavlink\|ais\|json --db edge.db` | Store telemetry from UDP (loopback by default) |
+| `tessera replay --db edge.db --format geojson\|cot` | Stream the log out |
+| `tessera integrity --db edge.db` | List fixes with low integrity |
+| `tessera keygen --out edge-1.key` | Create sync keys |
+| `tessera sync --db edge.db --hub-url https://hub --edge-id edge-1 --key edge-1.key` | Send the log to a hub |
+| `tessera hub --db hub.db --trusted-keys keys/` | Hub with live map |
+| `tessera map --db edge.db` | Live map on the edge |
 
 ## Pack index
 
@@ -19,11 +40,15 @@ Phase 1 ships a **Spatial Stream & Replay Engine** (Option B). Phase 2 plugs in 
 | `docs/06-founder-constraints-and-compliance.md` | Legal, export, employer, language constraints (verify) |
 | `docs/07-decision-log.md` | ADRs, append only |
 | `docs/08-research-backlog.md` | Open questions to research |
+| `docs/09-discovery-kit.md` | Customer discovery call script and qualification |
+| `docs/deployment.md` | Demo, edge and hub deployment |
+| `docs/sitl-quickstart.md` | ArduPilot SITL without Docker |
 | `rules/` | Coding, security, writing rules |
 | `agents/` | Role prompts (architect, backend, geo, reviewer, researcher, strategist) |
 | `skills/` | Repeatable procedures (adapter, ADR, replay test) |
-| `specs/sprint-01.md` | First coding sprint |
-| `src/`, `tests/` | Verified starter scaffold |
+| `specs/` | Sprint specs (01 to 03 done, 04 next) |
+| `deploy/systemd/` | Hardened service units |
+| `src/`, `tests/` | Code and tests |
 
 ## Quick start
 
@@ -48,8 +73,9 @@ docker build -t tessera .
 docker run --rm tessera --help
 docker compose -f docker-compose.sitl.yml up --build --abort-on-container-exit --exit-code-from tessera
 ```
-CI builds and smoke tests the image on every push (`docker` job), and a manual `sitl-e2e`
-workflow runs the full SITL compose stack.
+CI builds the image, runs a hardened ingest, replay and signed sync smoke test on every push
+(`docker` job). The `sitl-e2e` workflow runs SITL ingest and the full demo, and checks that
+the hub flags the injected GPS glitch.
 
 ## Migrating to another chat or platform
 

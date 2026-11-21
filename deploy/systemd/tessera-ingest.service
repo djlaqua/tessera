@@ -1,0 +1,28 @@
+[Unit]
+Description=Tessera ingest (MAVLink over UDP)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=tessera
+Group=tessera
+ExecStart=/opt/tessera/venv/bin/tessera ingest --protocol mavlink --db /var/lib/tessera/edge.db --bind 127.0.0.1 --port 14550
+Restart=always
+RestartSec=2
+StateDirectory=tessera
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target
